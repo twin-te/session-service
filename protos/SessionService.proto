@@ -1,3 +1,7 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
 service SessionService {
   rpc StartSession(StartSessionRequest) returns (StartSessionResponse);
   rpc GetSession(GetSessionRequest) returns (Session);
