@@ -15,3 +15,17 @@ export async function createSession({
     data: { id, user_id: userId, expired_at: expiredAt.toDate() },
   })
 }
+
+export async function findActiveSessionById({
+  id,
+}: {
+  id: string
+}): Promise<Session | null> {
+  const now = new Date()
+  return await prismaClient.session.findFirst({
+    where: {
+      id,
+      expired_at: { gt: now },
+    },
+  })
+}

@@ -1,8 +1,10 @@
+import { Status } from '@grpc/grpc-js/build/src/constants'
 import dayjs from 'dayjs'
 import { google, SessionService, StartSessionResponse } from '../../generated'
 import { sessionLifeTimeHours } from '../constant'
-import { createSession } from '../database/session'
+import { createSession, findActiveSessionById } from '../database/session'
 import { GrpcServer } from './type'
+import { transformSession } from './transformer'
 
 export const sessionService: GrpcServer<SessionService> = {
   async startSession({ request }, callback) {
@@ -14,17 +16,19 @@ export const sessionService: GrpcServer<SessionService> = {
     callback(
       null,
       StartSessionResponse.create({
-        session: {
-          sessionId: session.id,
-          userId: session.user_id,
-          expiredAt: google.protobuf.Timestamp.create({
-            seconds: session.expired_at.getTime() / 1000,
-          }),
-        },
+        session: transformSession(session),
       })
     )
   },
-  getSession({ request }, callback) {
-    // not implemented yet
+  async getSession({ request }, callback) {
+    const session = await findActiveSessionById({
+      id: request.sessionId,
+    })
+
+    if (!session) {
+      return callback({ code: Status.NOT_FOUND })
+    }
+
+    callback(null, transformSession(session))
   },
 }
