@@ -5,5 +5,3 @@ postgres:
     POSTGRES_DB: twinte_session_service
   ports:
     - 5432:5432
-  volumes:
-    - ./initdb/init.sql:/docker-entrypoint-initdb.d/init.sql
