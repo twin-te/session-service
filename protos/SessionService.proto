@@ -1,0 +1,22 @@
+service SessionService {
+  rpc StartSession(StartSessionRequest) returns (StartSessionResponse);
+  rpc GetSession(GetSessionRequest) returns (Session);
+}
+
+message StartSessionRequest { 
+  string user_id = 1;
+}
+
+message StartSessionResponse {
+  Session session = 1;
+}
+
+message GetSessionRequest {
+  string session_id = 1;
+}
+
+message Session {
+  string session_id = 1;
+  string user_id = 2;
+  google.protobuf.Timestamp expired_at = 3;
+}
