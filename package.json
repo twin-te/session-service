@@ -8,7 +8,7 @@
     "proto": "./proto-gen.sh",
     "client": "grpcc -i -a localhost:50051 -p protos/SessionService.proto",
     "schema": "prisma generate",
-    "migrate": "prisma db push",
+    "apply-db": "prisma db push --preview-feature",
     "test": "cross-env LOG_LEVEL=off jest --runInBand --coverage",
     "build": "rm -rf ./dist && tsc && rm -rf ./dist/__tests__ && mv ./dist/src/* ./dist",
     "lint": "eslint src/**/*.ts",
