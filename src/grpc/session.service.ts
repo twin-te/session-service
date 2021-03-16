@@ -17,6 +17,10 @@ export const sessionService: GrpcServer<SessionService> = {
       null,
       StartSessionResponse.create({
         session: transformSession(session),
+        cookieOptions: {
+          secure: true,
+          expires: session.expired_at.toUTCString(),
+        },
       })
     )
   },
