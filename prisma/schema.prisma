@@ -12,5 +12,6 @@ model Session {
   user_id    String   @db.Uuid
   expired_at DateTime
 
+  @@index([id, expired_at])
   @@map(name: "session")
 }
