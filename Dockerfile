@@ -1,5 +1,8 @@
 FROM node:14-slim AS build-env
 WORKDIR /usr/src/app
+
+RUN apt-get -qy update && apt-get install -qy openssl
+
 COPY package.json ./
 COPY yarn.lock ./
 RUN yarn
@@ -7,6 +10,7 @@ RUN yarn
 COPY . .
 
 RUN yarn proto
+RUN yarn schema
 
 RUN yarn build
 

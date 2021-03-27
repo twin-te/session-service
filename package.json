@@ -10,7 +10,7 @@
     "schema": "prisma generate",
     "apply-db": "prisma db push --preview-feature",
     "test": "cross-env LOG_LEVEL=off jest --runInBand --coverage",
-    "build": "rm -rf ./dist && tsc && rm -rf ./dist/__tests__ && mv ./dist/src/* ./dist",
+    "build": "rm -rf ./dist && tsc",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/"
   },
@@ -23,7 +23,6 @@
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.12.0",
     "@typescript-eslint/parser": "^4.12.0",
-    "dotenv": "^8.2.0",
     "eslint": "^7.12.1",
     "eslint-config-prettier": "^7.1.0",
     "eslint-config-standard": "^16.0.2",
@@ -45,6 +44,7 @@
     "clone": "^2.1.2",
     "cross-env": "^7.0.3",
     "dayjs": "^1.10.4",
+    "dotenv": "^8.2.0",
     "log4js": "^6.3.0",
     "protobufjs": "github:iFwu/protobuf.js",
     "uuid": "^8.3.2"
