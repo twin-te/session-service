@@ -23,6 +23,7 @@ LABEL org.opencontainers.image.source https://github.com/twin-te/session-service
 COPY --from=build-env /usr/src/app/dist ./dist
 COPY --from=build-env /usr/src/app/protos ./protos
 COPY --from=build-env /usr/src/app/generated ./generated
+COPY --from=build-env /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build-env /usr/src/app/package.json .
 COPY --from=build-env /usr/src/app/yarn.lock .
 
