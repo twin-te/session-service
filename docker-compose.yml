@@ -1,0 +1,23 @@
+version: '3.1'
+services:
+  postgres:
+    image: postgres:13.1
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: twinte_session_service
+    ports:
+      - 5432:5432
+  app:
+    build: .
+    environment:
+      PG_HOST: postgres
+      PG_PORT: 5432
+      PG_DATABASE: twinte_session_service
+      PG_USER: postgres
+      PG_PASSWORD: postgres
+      SESSION_LIFETIME_HOURS: 8760
+      DATABASE_URL: 'postgresql://postgres:postgres@postgres:5432/twinte_session_service?schema=public'
+    ports:
+      - 50051:50051
+    depends_on:
+      - postgres
