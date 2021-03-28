@@ -39,7 +39,6 @@ services:
     command: /bin/sh -c "while sleep 1000; do :; done"
   postgres:
     image: postgres:13.1
-    container_name: postgres-container
     environment:
       POSTGRES_PASSWORD: postgres
     volumes:

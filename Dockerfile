@@ -15,10 +15,12 @@ RUN yarn schema
 RUN yarn build
 
 
-FROM node:14-alpine
+FROM node:14-slim
 WORKDIR /usr/src/app
 
 LABEL org.opencontainers.image.source https://github.com/twin-te/session-service
+
+RUN apt-get -qy update && apt-get install -qy openssl
 
 COPY --from=build-env /usr/src/app/dist ./dist
 COPY --from=build-env /usr/src/app/prisma ./prisma
