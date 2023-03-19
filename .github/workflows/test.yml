@@ -10,7 +10,7 @@ jobs:
         run: docker-compose up -d
       - name: setup test
         working-directory: .devcontainer
-        run: docker-compose exec -T node bash -c "yarn && yarn proto"
+        run: docker-compose exec -T node bash -c "apt-get update -y && apt-get install -y openssl && yarn && yarn proto"
       - name: run test
         working-directory: .devcontainer
-        run: docker-compose exec -T node bash -c "yarn migrate:prod &&yarn test"
+        run: docker-compose exec -T node bash -c "yarn migrate:prod && yarn test"
