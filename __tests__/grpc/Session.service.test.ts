@@ -1,4 +1,5 @@
 import { startGrpcServer, stopGrpcServer } from '../../src/grpc'
+import { prismaClient } from '../../src/database/prisma-client'
 import * as protoLoader from '@grpc/proto-loader'
 import path from 'path'
 import * as grpc from '@grpc/grpc-js'
@@ -22,26 +23,32 @@ beforeAll(async () => {
   ) as unknown) as GrpcClient<SessionService>
 })
 
-const userId = uuid()
-let sessionId = ''
-
-test('セッションを作成する', (done) => {
-  client.startSession({ userId }, (err, res) => {
+const userId = [uuid(), uuid()]
+let sessionId = ['', '']
+test('セッションAを作成する', (done) => {
+  client.startSession({ userId: userId[0] }, (err, res) => {
     expect(err).toBeNull()
-    expect(res?.session?.userId).toEqual(userId)
+    expect(res?.session?.userId).toEqual(userId[0])
     expect(res?.session?.sessionId).not.toBeNull()
-    sessionId = res?.session?.sessionId ?? ''
-    console.log(res)
+    sessionId[0] = res?.session?.sessionId ?? ''
+    done()
+  })
+})
+test('セッションBを作成する', (done) => {
+  client.startSession({ userId: userId[1] }, (err, res) => {
+    expect(err).toBeNull()
+    expect(res?.session?.userId).toEqual(userId[1])
+    expect(res?.session?.sessionId).not.toBeNull()
+    sessionId[1] = res?.session?.sessionId ?? ''
     done()
   })
 })
 
-test('存在するセッションを返す', (done) => {
-  client.getSession({ sessionId }, (err, res) => {
-    console.log(err)
+test('存在するセッションAを返す', (done) => {
+  client.getSession({ sessionId: sessionId[0] }, (err, res) => {
     expect(err).toBeNull()
-    expect(res?.userId).toEqual(userId)
-    expect(res?.sessionId).toEqual(sessionId)
+    expect(res?.userId).toEqual(userId[0])
+    expect(res?.sessionId).toEqual(sessionId[0])
     done()
   })
 })
@@ -53,26 +60,51 @@ test('存在しないセッションでエラーを返す', (done) => {
   })
 })
 
-//未実装
-// test('セッションを消去する', (done) => {
-//   client.deleteSession({ sessionId }, (err, res) => {
-//     expect(err).toBeNull()
-//     done()
-//   })
-// })
+test('存在しないセッション(空文字列)でエラーを返す', (done) => {
+  client.getSession({ sessionId: '' }, (err, res) => {
+    expect(err?.code).toBe(3)
+    done()
+  })
+})
 
-// test('存在しないセッションを消去するとエラーを返す', (done) => {
-//   client.deleteSession({ sessionId: uuid() }, (err, res) => {
-//     expect(err?.code).toBe(5)
-//     done()
-//   })
-// })
+test('セッションAを消去する', (done) => {
+  client.deleteSession({ sessionId: sessionId[0] }, (err, res) => {
+    expect(err).toBeNull()
+    done()
+  })
+})
 
-// test('消去したセッションを得ようとしてもエラーを返す', (done) => {
-//   client.getSession({ sessionId }, (err, res) => {
-//     expect(err?.code).toBe(5)
-//     done()
-//   })
-// })
+test('存在しないセッションを消去するとエラーを返す', (done) => {
+  client.deleteSession({ sessionId: uuid() }, (err, res) => {
+    expect(err?.code).toBe(5)
+    done()
+  })
+})
 
-afterAll(stopGrpcServer)
+test('存在しないセッション(空文字列)を消去するとエラーを返す', (done) => {
+  client.deleteSession({ sessionId: '' }, (err, res) => {
+    expect(err?.code).toBe(3)
+    done()
+  })
+})
+
+test('消去したセッションAを得ようとしてもエラーを返す', (done) => {
+  client.getSession({ sessionId: sessionId[0] }, (err, res) => {
+    expect(err?.code).toBe(5)
+    done()
+  })
+})
+
+test('存在するセッションBを返す', (done) => {
+  client.getSession({ sessionId: sessionId[1] }, (err, res) => {
+    expect(err).toBeNull()
+    expect(res?.userId).toEqual(userId[1])
+    expect(res?.sessionId).toEqual(sessionId[1])
+    done()
+  })
+})
+
+afterAll(() => {
+  stopGrpcServer()
+  prismaClient.$disconnect()
+})

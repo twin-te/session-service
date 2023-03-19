@@ -1,13 +1,24 @@
 import { Status } from '@grpc/grpc-js/build/src/constants'
 import dayjs from 'dayjs'
-import { google, SessionService, StartSessionResponse } from '../../generated'
+import {
+  SessionService,
+  StartSessionResponse,
+  DeleteSessionResponse,
+} from '../../generated'
 import { sessionLifeTimeHours } from '../constant'
-import { createSession, findActiveSessionById } from '../database/session'
+import {
+  createSession,
+  findActiveSessionById,
+  deleteSessionById,
+} from '../database/session'
 import { GrpcServer } from './type'
 import { transformSession } from './transformer'
 
 export const sessionService: GrpcServer<SessionService> = {
   async startSession({ request }, callback) {
+    if (!request.userId) {
+      return callback({ code: Status.INVALID_ARGUMENT })
+    }
     const session = await createSession({
       userId: request.userId,
       expiredAt: dayjs().add(sessionLifeTimeHours, 'hour'),
@@ -25,6 +36,9 @@ export const sessionService: GrpcServer<SessionService> = {
     )
   },
   async getSession({ request }, callback) {
+    if (!request.sessionId) {
+      return callback({ code: Status.INVALID_ARGUMENT })
+    }
     const session = await findActiveSessionById({
       id: request.sessionId,
     })
@@ -34,5 +48,20 @@ export const sessionService: GrpcServer<SessionService> = {
     }
 
     callback(null, transformSession(session))
+  },
+  async deleteSession({ request }, callback) {
+    if (!request.sessionId) {
+      return callback({ code: Status.INVALID_ARGUMENT })
+    }
+
+    try {
+      await deleteSessionById({
+        id: request.sessionId,
+      })
+    } catch {
+      return callback({ code: Status.NOT_FOUND })
+    }
+
+    callback(null, DeleteSessionResponse.create())
   },
 }
