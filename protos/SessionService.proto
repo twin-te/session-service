@@ -5,6 +5,7 @@ import "google/protobuf/timestamp.proto";
 service SessionService {
   rpc StartSession(StartSessionRequest) returns (StartSessionResponse);
   rpc GetSession(GetSessionRequest) returns (Session);
+  rpc DeleteSession(DeleteSessionRequest) returns (DeleteSessionResponse);
 }
 
 message StartSessionRequest { 
@@ -30,3 +31,9 @@ message Session {
   string user_id = 2;
   google.protobuf.Timestamp expired_at = 3;
 }
+
+message DeleteSessionRequest {
+  string session_id = 1;
+}
+
+message DeleteSessionResponse {}
