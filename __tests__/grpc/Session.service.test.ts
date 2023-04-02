@@ -23,41 +23,59 @@ beforeAll(async () => {
   ) as unknown) as GrpcClient<SessionService>
 })
 
-const userId = [uuid(), uuid(), uuid()]
-let sessionId = ['', '', '']
-test('セッションAを作成する', (done) => {
-  client.startSession({ userId: userId[0] }, (err, res) => {
+const userId = {
+  userA: uuid(),
+  userB: uuid(),
+  userC: uuid(),
+}
+let sessionId = {
+  'userA-1': '',
+  'userB-1': '',
+  'userC-1': '',
+  'userC-2': '',
+}
+test('セッションA-1を作成する', (done) => {
+  client.startSession({ userId: userId['userA'] }, (err, res) => {
     expect(err).toBeNull()
-    expect(res?.session?.userId).toEqual(userId[0])
+    expect(res?.session?.userId).toEqual(userId['userA'])
     expect(res?.session?.sessionId).not.toBeNull()
-    sessionId[0] = res?.session?.sessionId ?? ''
+    sessionId['userA-1'] = res?.session?.sessionId ?? ''
     done()
   })
 })
-test('セッションBを作成する', (done) => {
-  client.startSession({ userId: userId[1] }, (err, res) => {
+test('セッションB-1を作成する', (done) => {
+  client.startSession({ userId: userId['userB'] }, (err, res) => {
     expect(err).toBeNull()
-    expect(res?.session?.userId).toEqual(userId[1])
+    expect(res?.session?.userId).toEqual(userId['userB'])
     expect(res?.session?.sessionId).not.toBeNull()
-    sessionId[1] = res?.session?.sessionId ?? ''
+    sessionId['userB-1'] = res?.session?.sessionId ?? ''
     done()
   })
 })
-test('セッションCを作成する', (done) => {
-  client.startSession({ userId: userId[2] }, (err, res) => {
+test('セッションC-1を作成する', (done) => {
+  client.startSession({ userId: userId['userC'] }, (err, res) => {
     expect(err).toBeNull()
-    expect(res?.session?.userId).toEqual(userId[2])
+    expect(res?.session?.userId).toEqual(userId['userC'])
     expect(res?.session?.sessionId).not.toBeNull()
-    sessionId[2] = res?.session?.sessionId ?? ''
+    sessionId['userC-1'] = res?.session?.sessionId ?? ''
+    done()
+  })
+})
+test('セッションC-2(同じユーザの別セッション)を作成する', (done) => {
+  client.startSession({ userId: userId['userC'] }, (err, res) => {
+    expect(err).toBeNull()
+    expect(res?.session?.userId).toEqual(userId['userC'])
+    expect(res?.session?.sessionId).not.toBeNull()
+    sessionId['userC-2'] = res?.session?.sessionId ?? ''
     done()
   })
 })
 
 test('存在するセッションAを返す', (done) => {
-  client.getSession({ sessionId: sessionId[0] }, (err, res) => {
+  client.getSession({ sessionId: sessionId['userA-1'] }, (err, res) => {
     expect(err).toBeNull()
-    expect(res?.userId).toEqual(userId[0])
-    expect(res?.sessionId).toEqual(sessionId[0])
+    expect(res?.userId).toEqual(userId['userA'])
+    expect(res?.sessionId).toEqual(sessionId['userA-1'])
     done()
   })
 })
@@ -77,10 +95,13 @@ test('存在しないセッション(空文字列)でエラーを返す', (done)
 })
 
 test('セッションAをセッションIdで消去する', (done) => {
-  client.deleteSessionBySessionId({ sessionId: sessionId[0] }, (err, res) => {
-    expect(err).toBeNull()
-    done()
-  })
+  client.deleteSessionBySessionId(
+    { sessionId: sessionId['userA-1'] },
+    (err, res) => {
+      expect(err).toBeNull()
+      done()
+    }
+  )
 })
 
 test('存在しないセッションをセッションIdで消去するとエラーを返す', (done) => {
@@ -98,24 +119,26 @@ test('存在しないセッション(セッションIdが空文字列)を消去�
 })
 
 test('消去したセッションAを得ようとしてもエラーを返す', (done) => {
-  client.getSession({ sessionId: sessionId[0] }, (err, res) => {
+  client.getSession({ sessionId: sessionId['userA-1'] }, (err, res) => {
     expect(err?.code).toBe(5)
     done()
   })
 })
 
 test('セッションBをuserIdで消去する', (done) => {
-  client.deleteSessionByUserId({ userId: userId[1] }, (err, res) => {
+  client.deleteSessionByUserId({ userId: userId['userB'] }, (err, res) => {
     expect(err).toBeNull()
     done()
   })
 })
+
 test('存在しないセッションをuserIdで消去するとエラーを返す', (done) => {
   client.deleteSessionByUserId({ userId: uuid() }, (err, res) => {
     expect(err?.code).toBe(5)
     done()
   })
 })
+
 test('存在しないセッション(userIdが空文字列)を消去するとエラーを返す', (done) => {
   client.deleteSessionByUserId({ userId: '' }, (err, res) => {
     expect(err?.code).toBe(3)
@@ -124,17 +147,38 @@ test('存在しないセッション(userIdが空文字列)を消去するとエ
 })
 
 test('消去したセッションBを得ようとしてもエラーを返す', (done) => {
-  client.getSession({ sessionId: sessionId[1] }, (err, res) => {
+  client.getSession({ sessionId: sessionId['userB-1'] }, (err, res) => {
     expect(err?.code).toBe(5)
     done()
   })
 })
 
-test('存在するセッションCを返す', (done) => {
-  client.getSession({ sessionId: sessionId[2] }, (err, res) => {
+test('存在するセッションC-1を返す', (done) => {
+  client.getSession({ sessionId: sessionId['userC-1'] }, (err, res) => {
     expect(err).toBeNull()
-    expect(res?.userId).toEqual(userId[2])
-    expect(res?.sessionId).toEqual(sessionId[2])
+    expect(res?.userId).toEqual(userId['userC'])
+    expect(res?.sessionId).toEqual(sessionId['userC-1'])
+    done()
+  })
+})
+
+test('セッションC-1とC-2をuserIdで消去する', (done) => {
+  client.deleteSessionByUserId({ userId: userId['userC'] }, (err, res) => {
+    expect(err).toBeNull()
+    done()
+  })
+})
+
+test('セッションC-1が消えている', (done) => {
+  client.getSession({ sessionId: sessionId['userC-2'] }, (err, res) => {
+    expect(err?.code).toBe(5)
+    done()
+  })
+})
+
+test('セッションC-2も消えている', (done) => {
+  client.getSession({ sessionId: sessionId['userC-2'] }, (err, res) => {
+    expect(err?.code).toBe(5)
     done()
   })
 })
