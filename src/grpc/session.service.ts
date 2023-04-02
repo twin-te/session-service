@@ -3,13 +3,15 @@ import dayjs from 'dayjs'
 import {
   SessionService,
   StartSessionResponse,
-  DeleteSessionResponse,
+  DeleteSessionBySessionIdResponse,
+  DeleteSessionByUserIdResponse,
 } from '../../generated'
 import { sessionLifeTimeHours } from '../constant'
 import {
   createSession,
   findActiveSessionById,
-  deleteSessionById,
+  deleteSessionBySessionId,
+  deleteSessionByUserId,
 } from '../database/session'
 import { GrpcServer } from './type'
 import { transformSession } from './transformer'
@@ -49,19 +51,38 @@ export const sessionService: GrpcServer<SessionService> = {
 
     callback(null, transformSession(session))
   },
-  async deleteSession({ request }, callback) {
+  async deleteSessionBySessionId({ request }, callback) {
     if (!request.sessionId) {
       return callback({ code: Status.INVALID_ARGUMENT })
     }
 
     try {
-      await deleteSessionById({
-        id: request.sessionId,
+      await deleteSessionBySessionId({
+        sessionId: request.sessionId,
       })
     } catch {
       return callback({ code: Status.NOT_FOUND })
     }
 
-    callback(null, DeleteSessionResponse.create())
+    callback(null, DeleteSessionBySessionIdResponse.create())
+  },
+
+  async deleteSessionByUserId({ request }, callback) {
+    if (!request.userId) {
+      return callback({ code: Status.INVALID_ARGUMENT })
+    }
+
+    try {
+      const result = await deleteSessionByUserId({
+        userId: request.userId,
+      })
+      if (result.count === 0) {
+        throw new Error('not found')
+      }
+    } catch {
+      return callback({ code: Status.NOT_FOUND })
+    }
+
+    callback(null, DeleteSessionByUserIdResponse.create())
   },
 }

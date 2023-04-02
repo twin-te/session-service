@@ -23,8 +23,8 @@ beforeAll(async () => {
   ) as unknown) as GrpcClient<SessionService>
 })
 
-const userId = [uuid(), uuid()]
-let sessionId = ['', '']
+const userId = [uuid(), uuid(), uuid()]
+let sessionId = ['', '', '']
 test('セッションAを作成する', (done) => {
   client.startSession({ userId: userId[0] }, (err, res) => {
     expect(err).toBeNull()
@@ -40,6 +40,15 @@ test('セッションBを作成する', (done) => {
     expect(res?.session?.userId).toEqual(userId[1])
     expect(res?.session?.sessionId).not.toBeNull()
     sessionId[1] = res?.session?.sessionId ?? ''
+    done()
+  })
+})
+test('セッションCを作成する', (done) => {
+  client.startSession({ userId: userId[2] }, (err, res) => {
+    expect(err).toBeNull()
+    expect(res?.session?.userId).toEqual(userId[2])
+    expect(res?.session?.sessionId).not.toBeNull()
+    sessionId[2] = res?.session?.sessionId ?? ''
     done()
   })
 })
@@ -67,22 +76,22 @@ test('存在しないセッション(空文字列)でエラーを返す', (done)
   })
 })
 
-test('セッションAを消去する', (done) => {
-  client.deleteSession({ sessionId: sessionId[0] }, (err, res) => {
+test('セッションAをセッションIdで消去する', (done) => {
+  client.deleteSessionBySessionId({ sessionId: sessionId[0] }, (err, res) => {
     expect(err).toBeNull()
     done()
   })
 })
 
-test('存在しないセッションを消去するとエラーを返す', (done) => {
-  client.deleteSession({ sessionId: uuid() }, (err, res) => {
+test('存在しないセッションをセッションIdで消去するとエラーを返す', (done) => {
+  client.deleteSessionBySessionId({ sessionId: uuid() }, (err, res) => {
     expect(err?.code).toBe(5)
     done()
   })
 })
 
-test('存在しないセッション(空文字列)を消去するとエラーを返す', (done) => {
-  client.deleteSession({ sessionId: '' }, (err, res) => {
+test('存在しないセッション(セッションIdが空文字列)を消去するとエラーを返す', (done) => {
+  client.deleteSessionBySessionId({ sessionId: '' }, (err, res) => {
     expect(err?.code).toBe(3)
     done()
   })
@@ -95,11 +104,37 @@ test('消去したセッションAを得ようとしてもエラーを返す', (
   })
 })
 
-test('存在するセッションBを返す', (done) => {
-  client.getSession({ sessionId: sessionId[1] }, (err, res) => {
+test('セッションBをuserIdで消去する', (done) => {
+  client.deleteSessionByUserId({ userId: userId[1] }, (err, res) => {
     expect(err).toBeNull()
-    expect(res?.userId).toEqual(userId[1])
-    expect(res?.sessionId).toEqual(sessionId[1])
+    done()
+  })
+})
+test('存在しないセッションをuserIdで消去するとエラーを返す', (done) => {
+  client.deleteSessionByUserId({ userId: uuid() }, (err, res) => {
+    expect(err?.code).toBe(5)
+    done()
+  })
+})
+test('存在しないセッション(userIdが空文字列)を消去するとエラーを返す', (done) => {
+  client.deleteSessionByUserId({ userId: '' }, (err, res) => {
+    expect(err?.code).toBe(3)
+    done()
+  })
+})
+
+test('消去したセッションBを得ようとしてもエラーを返す', (done) => {
+  client.getSession({ sessionId: sessionId[1] }, (err, res) => {
+    expect(err?.code).toBe(5)
+    done()
+  })
+})
+
+test('存在するセッションCを返す', (done) => {
+  client.getSession({ sessionId: sessionId[2] }, (err, res) => {
+    expect(err).toBeNull()
+    expect(res?.userId).toEqual(userId[2])
+    expect(res?.sessionId).toEqual(sessionId[2])
     done()
   })
 })
