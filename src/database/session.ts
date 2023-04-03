@@ -30,14 +30,22 @@ export async function findActiveSessionById({
   })
 }
 
-export async function deleteSessionById({
-  id,
+export async function deleteSessionBySessionId({
+  sessionId,
 }: {
-  id: string
+  sessionId: string
 }): Promise<{ id: string } | null> {
   return await prismaClient.session.delete({
     where: {
-      id,
+      id: sessionId,
+    },
+  })
+}
+
+export async function deleteSessionByUserId({ userId }: { userId: string }) {
+  return await prismaClient.session.deleteMany({
+    where: {
+      user_id: userId,
     },
   })
 }
